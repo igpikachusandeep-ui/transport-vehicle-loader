@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transport Dashboard — Vehicle Loader Demo</title>
+
+  <style>
+    :root {
+      --primary: #0647b9;
+      --primary-dark: #06357f;
+      --teal: #057888;
+      --teal-dark: #006b78;
+      --page-bg: #f7f8fb;
+      --white: #ffffff;
+      --text: #222b3a;
+      --muted: #697386;
+      --border: #dce2eb;
+      --success-bg: #e1f6e8;
+      --warning-bg: #ffe0d3;
+      --route-blue: #95bfff;
+      --danger: #e56959;
+      --shadow: 0 10px 30px rgba(18, 49, 94, 0.11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--page-bg);
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* ==========================================================
+       TOP HEADER
+    ========================================================== */
+
+    .top-header {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 30px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 23px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 9px;
+      color: white;
+      background: linear-gradient(135deg, #03a278, #025ec9);
+      font-size: 18px;
+    }
+
+    .brand span {
+      color: var(--teal);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-button {
+      padding: 10px 15px;
+      border: 1px solid #cfd9e8;
+      border-radius: 8px;
+      color: var(--primary-dark);
+      background: var(--white);
+      font-size: 14px;
+      font-weight: 700;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .header-button:hover {
+      background: #edf4ff;
+      transform: translateY(-1px);
+    }
+
+    /* ==========================================================
+       LAYOUT
+    ========================================================== */
+
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - 70px);
+    }
+
+    .sidebar {
+      width: 220px;
+      flex: 0 0 220px;
+      padding: 26px 15px;
+      background: #ffffff;
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar-label {
+      margin: 0 11px 12px;
+      color: #8a94a6;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 12px 13px;
+      border: 0;
+      border-radius: 9px;
+      color: #58657a;
+      background: transparent;
+      text-align: left;
+      font-size: 14px;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .side-link:hover,
+    .side-link.active {
+      color: var(--primary-dark);
+      background: #eaf2ff;
+    }
+
+    .side-icon {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
+      place-items: center;
+      border-radius: 7px;
+      color: var(--primary);
+      background: #dceaff;
+      font-size: 13px;
+    }
+
+    .main-content {
+      width: 100%;
+      padding: 28px;
+      overflow: hidden;
+    }
+
+    .page-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .page-heading h1 {
+      margin: 0 0 7px;
+      color: #16233a;
+      font-size: 26px;
+      letter-spacing: -0.5px;
+    }
+
+    .page-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid #c7eed8;
+      border-radius: 999px;
+      color: #18744b;
+      background: #eafaf1;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22b36d;
+      box-shadow: 0 0 0 0 rgba(34, 179, 109, 0.5);
+      animation: livePulse 1.6s infinite;
+    }
+
+    /* ==========================================================
+       FILTERS
+    ========================================================== */
+
+    .filters {
+      display: flex;
+      align-items: end;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 17px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--white);
+      box-shadow: 0 4px 14px rgba(30, 56, 102, 0.04);
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .filter-item label {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .filter-item select,
+    .filter-item input {
+      min-width: 170px;
+      height: 39px;
+      padding: 0 11px;
+      border: 1px solid #cfd8e7;
+      border-radius: 7px;
+      color: #344055;
+      background: white;
+      outline: none;
+    }
+
+    .filter-item input:focus,
+    .filter-item select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(6, 71, 185, 0.1);
+    }
+
+    .filter-button {
+      height: 39px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 7px;
+      color: white;
+      background: var(--teal);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .filter-button:hover {
+      background: var(--teal-dark);
+    }
+
+    /* ==========================================================
+       TIME SLOTS
+    ========================================================== */
+
+    .time-slots {
+      display: flex;
+      gap: 9px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+      padding-bottom: 3px;
+    }
+
+    .time-slot {
+      min-width: 94px;
+      padding: 9px 13px;
+      border: 1px solid #c9d3e1;
+      border-radius: 999px;
+      color: #516176;
+      background: white;
+      font-size: 13px;
+      font-weight: 700;
+      transition: 160ms ease;
+    }
+
+    .time-slot:hover,
+    .time-slot.active {
+      border-color: var(--primary);
+      color: white;
+      background: var(--primary);
+    }
+
+    /* ==========================================================
+       DASHBOARD CARDS
+    ========================================================== */
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(210px, 1fr));
+      gap: 18px;
+      max-width: 1160px;
+    }
+
+    .dashboard-card {
+      position: relative;
+      min-height: 157px;
+      overflow: hidden;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--white);
+      text-align: left;
+      box-shadow: 0 4px 15px rgba(30, 56, 102, 0.05);
+      transition: transform 170ms ease, box-shadow 170ms ease;
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .dashboard-card.success {
+      border-color: #d1ecd9;
+      background: var(--success-bg);
+    }
+
+    .dashboard-card.warning {
+      border-color: #f1cabc;
+      background: var(--warning-bg);
+    }
+
+    .dashboard-card::after {
+      content: "→";
+      position: absolute;
+      right: 18px;
+      bottom: 15px;
+      color: var(--primary);
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .card-title {
+      display: block;
+      min-height: 37px;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .card-value {
+      display: block;
+      margin-top: 11px;
+      color: #0d3c91;
+      font-size: 37px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .card-description {
+      display: block;
+      max-width: 88%;
+      margin-top: 11px;
+      color: #657084;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .dashboard-card.warning .card-value {
+      color: #c8563e;
+    }
+
+    .dashboard-card.success .card-value {
+      color: #177449;
+    }
+
+    /* ==========================================================
+       BOTTOM STATUS CHIPS
+    ========================================================== */
+
+    .status-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 27px;
+    }
+
+    .status-chip {
+      padding: 9px 12px;
+      border: 1px solid #c8d9ef;
+      border-radius: 999px;
+      color: #20518d;
+      background: white;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-chip strong {
+      display: inline-grid;
+      width: 22px;
+      height: 22px;
+      margin-left: 5px;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      background: var(--primary);
+      font-size: 11px;
+    }
+
+    /* ==========================================================
+       VEHICLE PAGE-LOADING ANIMATION
+    ========================================================== */
+
+    .transport-loader {
+      position: fixed;
+      z-index: 9999;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(4, 21, 49, 0.82);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 180ms ease, visibility 180ms ease;
+    }
+
+    .transport-loader.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .loader-panel {
+      width: min(650px, 100%);
+      overflow: hidden;
+      padding: 31px 34px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.17);
+      border-radius: 24px;
+      color: white;
+      background:
+        radial-gradient(circle at 85% 10%, rgba(16, 151, 209, 0.25), transparent 35%),
+        linear-gradient(145deg, #123d7d, #031b45);
+      box-shadow: 0 24px 75px rgba(0, 0, 0, 0.4);
+    }
+
+    .loader-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .loader-heading h2 {
+      margin: 0 0 8px;
+      font-size: 23px;
+      letter-spacing: -0.3px;
+    }
+
+    .loader-heading p {
+      margin: 0;
+      color: #c9d9f0;
+      font-size: 14px;
+    }
+
+    .loader-counter {
+      min-width: 58px;
+      padding: 8px 9px;
+      border: 1px solid rgba(190, 220, 255, 0.28);
+      border-radius: 9px;
+      color: #d9ecff;
+      background: rgba(255, 255, 255, 0.1);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .road-area {
+      position: relative;
+      height: 160px;
+      margin: 10px 0 4px;
+      overflow: hidden;
+    }
+
+    .city-shape {
+      position: absolute;
+      right: -8px;
+      bottom: 50px;
+      display: flex;
+      align-items: end;
+      gap: 5px;
+      opacity: 0.28;
+    }
+
+    .building {
+      width: 22px;
+      border-radius: 4px 4px 0 0;
+      background: #a4d8ff;
+    }
+
+    .building:nth-child(1) {
+      height: 36px;
+    }
+
+    .building:nth-child(2) {
+      height: 64px;
+    }
+
+    .building:nth-child(3) {
+      height: 47px;
+    }
+
+    .building:nth-child(4) {
+      height: 82px;
+    }
+
+    .building:nth-child(5) {
+      height: 53px;
+    }
+
+    .route-line {
+      position: absolute;
+      top: 93px;
+      right: 3%;
+      left: 3%;
+      border-top: 5px dashed var(--route-blue);
+      opacity: 0.94;
+    }
+
+    .route-line::before,
+    .route-line::after {
+      position: absolute;
+      top: -13px;
+      width: 20px;
+      height: 20px;
+      border: 4px solid white;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .route-line::before {
+      left: -3px;
+      background: #0fb38d;
+      box-shadow: 0 0 0 7px rgba(15, 179, 141, 0.18);
+    }
+
+    .route-line::after {
+      right: -3px;
+      background: #ff8b44;
+      box-shadow: 0 0 0 7px rgba(255, 139, 68, 0.18);
+    }
+
+    .vehicle {
+      position: absolute;
+      top: 54px;
+      left: -100px;
+      width: 88px;
+      height: 50px;
+      animation: driveVehicle 2.25s linear infinite;
+    }
+
+    .cab-body {
+      position: absolute;
+      bottom: 7px;
+      left: 6px;
+      width: 70px;
+      height: 28px;
+      border-radius: 8px 12px 7px 7px;
+      background: linear-gradient(135deg, #ffde55, #ff9e08);
+      box-shadow: inset 0 -5px 0 rgba(113, 58, 0, 0.15);
+    }
+
+    .cab-roof {
+      position: absolute;
+      bottom: 31px;
+      left: 25px;
+      width: 37px;
+      height: 19px;
+      border-radius: 13px 13px 2px 2px;
+      background: #ffb60e;
+    }
+
+    .window {
+      position: absolute;
+      top: 4px;
+      width: 13px;
+      height: 10px;
+      border-radius: 4px 5px 1px 1px;
+      background: #b7eaff;
+    }
+
+    .window.back {
+      left: 3px;
+    }
+
+    .window.front {
+      right: 3px;
+    }
+
+    .headlight {
+      position: absolute;
+      right: 8px;
+      bottom: 16px;
+      width: 7px;
+      height: 8px;
+      border-radius: 2px 5px 5px 2px;
+      background: #fff8c2;
+    }
+
+    .cab-stripe {
+      position: absolute;
+      right: 7px;
+      bottom: 20px;
+      width: 52px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.64);
+    }
+
+    .wheel {
+      position: absolute;
+      bottom: 0;
+      width: 18px;
+      height: 18px;
+      border: 4px solid #1e293b;
+      border-radius: 50%;
+      background: #94a3b8;
+      animation: wheelSpin 360ms linear infinite;
+    }
+
+    .wheel-one {
+      left: 15px;
+    }
+
+    .wheel-two {
+      right: 10px;
+    }
+
+    .moving-pin {
+      position: absolute;
+      top: 27px;
+      left: 12%;
+      width: 17px;
+      height: 17px;
+      border-radius: 50% 50% 50% 0;
+      background: #ff7171;
+      box-shadow: 0 5px 12px rgba(255, 78, 78, 0.35);
+      transform: rotate(-45deg);
+      animation: movePin 2.25s linear infinite;
+    }
+
+    .moving-pin::after {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: white;
+      content: "";
+    }
+
+    .loader-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 6px;
+      color: #d3e2f8;
+      font-size: 13px;
+    }
+
+    .loader-progress {
+      width: 180px;
+      height: 7px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.17);
+    }
+
+    .loader-progress-bar {
+      width: 52%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #42d6e8, #ffffff, #42d6e8);
+      animation: routeProgress 1.15s ease-in-out infinite;
+    }
+
+    /* ==========================================================
+       ANIMATION KEYFRAMES
+    ========================================================== */
+
+    @keyframes driveVehicle {
+      from {
+        left: -105px;
+      }
+
+      to {
+        left: calc(100% + 20px);
+      }
+    }
+
+    @keyframes wheelSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes movePin {
+      0% {
+        left: 11%;
+        opacity: 0;
+      }
+
+      9% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        left: 88%;
+        opacity: 0;
+      }
+    }
+
+    @keyframes routeProgress {
+      0% {
+        transform: translateX(-120%);
+      }
+
+      100% {
+        transform: translateX(320%);
+      }
+    }
+
+    @keyframes livePulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(34, 179, 109, 0.55);
+      }
+
+      70% {
+        box-shadow: 0 0 0 7px rgba(34, 179, 109, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 179, 109, 0);
+      }
+    }
+
+    /* ==========================================================
+       RESPONSIVE DESIGN
+    ========================================================== */
+
+    @media (max-width: 1000px) {
+      .sidebar {
+        width: 70px;
+        flex-basis: 70px;
+        padding: 24px 10px;
+      }
+
+      .sidebar-label,
+      .side-link span:last-child {
+        display: none;
+      }
+
+      .side-link {
+        justify-content: center;
+        padding: 12px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(210px, 1fr));
+      }
+    }
+
+    @media (max-width: 650px) {
+      .top-header {
+        height: auto;
+        min-height: 64px;
+        padding: 12px 16px;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+      .header-actions {
+        display: none;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .main-content {
+        padding: 19px 15px;
+      }
+
+      .page-heading {
+        flex-direction: column;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-item,
+      .filter-item select,
+      .filter-item input,
+      .filter-button {
+        width: 100%;
+      }
+
+      .filters {
+        align-items: stretch;
+      }
+
+      .loader-panel {
+        padding: 26px 20px 22px;
+      }
+
+      .loader-heading h2 {
+        font-size: 20px;
+      }
+
+      .loader-counter {
+        display: none;
+      }
+
+      .loader-footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .loader-progress {
+        width: 100%;
+      }
+    }
+
+    /* Accessibility: Respect system animation settings */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="top-header">
+    <div class="brand">
+      <div class="brand-logo">↗</div>
+      Move<span>Transport</span>
+    </div>
+
+    <div class="header-actions">
+      <button
+        class="header-button navigation-trigger"
+        data-title="Live Vehicle Tracking"
+        data-message="Connecting to live GPS vehicle locations..."
+      >
+        Live Tracking
+      </button>
+
+      <button
+        class="header-button navigation-trigger"
+        data-title="Transport Reports"
+        data-message="Preparing transport and trip reports..."
+      >
+        Reports
+      </button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <p class="sidebar-label">Operations</p>
+
+      <button
+        class="side-link active navigation-trigger"
+        data-title="Transport Dashboard"
+        data-message="Refreshing the transport dashboard..."
+      >
+        <span class="side-icon">▦</span>
+        <span>Dashboard</span>
+      </button>
+
+      <button
+        class="side-link navigation-trigger"
+        data-title="Route Management"
+        data-message="Loading active transport routes..."
+      >
+        <span class="side-icon">⌁</span>
+        <span>Routing</span>
+      </button>
+
+      <button
+        class="side-link navigation-trigger"
+        data-title="Trip Generation"
+        data-message="Preparing trip-generation details..."
+      >
+        <span class="side-icon">▤</span>
+        <span>Trip Generation</span>
+      </button>
+
+      <button
+        class="side-link navigation-trigger"
+        data-title="Pre-Trip Status"
+        data-message="Checking vehicle and trip readiness..."
+      >
+        <span class="side-icon">◷</span>
+        <span>Pre-Trip</span>
+      </button>
+
+      <button
+        class="side-link navigation-trigger"
+        data-title="Trips in Progress"
+        data-message="Loading live trip progress..."
+      >
+        <span class="side-icon">▸</span>
+        <span>In Progress</span>
+      </button>
+
+      <button
+        class="side-link navigation-trigger"
+        data-title="Completed Trips"
+        data-message="Retrieving completed trip records..."
+      >
+        <span class="side-icon">✓</span>
+        <span>Completed</span>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-heading">
+        <div>
+          <h1 id="pageTitle">Transport Dashboard</h1>
+          <p id="pageDescription">
+            Monitor routes, trips, vehicles, and operational exceptions.
+          </p>
+        </div>
+
+        <div class="live-indicator">
+          <span class="pulse-dot"></span>
+          Live operations
+        </div>
+      </div>
+
+      <section class="filters">
+        <div class="filter-item">
+          <label for="office">Office</label>
+          <select id="office">
+            <option>All Offices</option>
+            <option>Kolkata</option>
+            <option>Bengaluru</option>
+            <option>Hyderabad</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="shift">Shift</label>
+          <select id="shift">
+            <option>All Shifts</option>
+            <option>Morning Shift</option>
+            <option>Evening Shift</option>
+            <option>Night Shift</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="search">Vehicle / Trip ID</label>
+          <input id="search" type="text" placeholder="Example: CAB-1024" />
+        </div>
+
+        <button
+          class="filter-button navigation-trigger"
+          data-title="Filtered Transport View"
+          data-message="Applying transport filters and updating routes..."
+        >
+          Apply Filters
+        </button>
+      </section>
+
+      <section class="time-slots" aria-label="Shift time slots">
+        <button
+          class="time-slot active navigation-trigger"
+          data-title="13:00 Shift Dashboard"
+          data-message="Loading 13:00 transport shift data..."
+        >
+          13:00
+        </button>
+
+        <button
+          class="time-slot navigation-trigger"
+          data-title="14:00 Shift Dashboard"
+          data-message="Loading 14:00 transport shift data..."
+        >
+          14:00
+        </button>
+
+        <button
+          class="time-slot navigation-trigger"
+          data-title="15:00 Shift Dashboard"
+          data-message="Loading 15:00 transport shift data..."
+        >
+          15:00
+        </button>
+
+        <button
+          class="time-slot navigation-trigger"
+          data-title="16:00 Shift Dashboard"
+          data-message="Loading 16:00 transport shift data..."
+        >
+          16:00
+        </button>
+
+        <button
+          class="time-slot navigation-trigger"
+          data-title="17:00 Shift Dashboard"
+          data-message="Loading 17:00 transport shift data..."
+        >
+          17:00
+        </button>
+
+        <button
+          class="time-slot navigation-trigger"
+          data-title="18:00 Shift Dashboard"
+          data-message="Loading 18:00 transport shift data..."
+        >
+          18:00
+        </button>
+      </section>
+
+      <section class="dashboard-grid">
+        <button
+          class="dashboard-card navigation-trigger"
+          data-title="Routed Schedules"
+          data-message="Preparing routed schedule information..."
+        >
+          <span class="card-title">Routed Schedules</span>
+          <span class="card-value">267</span>
+          <span class="card-description">
+            Schedules assigned to active transport routes
+          </span>
+        </button>
+
+        <button
+          class="dashboard-card success navigation-trigger"
+          data-title="Trips Generated"
+          data-message="Generating trip and passenger details..."
+        >
+          <span class="card-title">Trips Generated</span>
+          <span class="card-value">80</span>
+          <span class="card-description">
+            Vehicles, routes, drivers, and passengers mapped
+          </span>
+        </button>
+
+        <button
+          class="dashboard-card navigation-trigger"
+          data-title="Trips Yet To Start"
+          data-message="Checking trips waiting for departure..."
+        >
+          <span class="card-title">Yet to Start</span>
+          <span class="card-value">47</span>
+          <span class="card-description">
+            Scheduled trips that are awaiting vehicle movement
+          </span>
+        </button>
+
+        <button
+          class="dashboard-card warning navigation-trigger"
+          data-title="Ongoing Delayed Trips"
+          data-message="Checking live vehicle positions and trip delays..."
+        >
+          <span class="card-title">Ongoing Delayed Trips</span>
+          <span class="card-value">5</span>
+          <span class="card-description">
+            Trips that currently require operations-team attention
+          </span>
+        </button>
+
+        <button
+          class="dashboard-card success navigation-trigger"
+          data-title="Completed On Time"
+          data-message="Loading on-time completion status..."
+        >
+          <span class="card-title">Completed on Time</span>
+          <span class="card-value">11</span>
+          <span class="card-description">
+            Trips completed within their planned time window
+          </span>
+        </button>
+
+        <button
+          class="dashboard-card warning navigation-trigger"
+          data-title="Delayed Trips"
+          data-message="Opening delayed trip analysis and exceptions..."
+        >
+          <span class="card-title">Delayed Trips</span>
+          <span class="card-value">9</span>
+          <span class="card-description">
+            Review delays, routes, vehicle status, and actions
+          </span>
+        </button>
+      </section>
+
+      <section class="status-chips">
+        <div class="status-chip">Women travelling alone <strong>0</strong></div>
+        <div class="status-chip">In-premise vehicles <strong>11</strong></div>
+        <div class="status-chip">Non-shift trips <strong>0</strong></div>
+        <div class="status-chip">Adhoc trips <strong>0</strong></div>
+        <div class="status-chip">Delayed vehicles <strong>20</strong></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==========================================================
+       VEHICLE LOADING OVERLAY
+  =========================================================== -->
+  <div
+    id="transportLoader"
+    class="transport-loader"
+    role="status"
+    aria-live="polite"
+    aria-label="Loading transport information"
+  >
+    <div class="loader-panel">
+      <div class="loader-heading">
+        <div>
+          <h2>Vehicle is on the way</h2>
+          <p id="loaderMessage">Preparing transport information...</p>
+        </div>
+
+        <div class="loader-counter" id="loaderCounter">0%</div>
+      </div>
+
+      <div class="road-area" aria-hidden="true">
+        <div class="city-shape">
+          <div class="building"></div>
+          <div class="building"></div>
+          <div class="building"></div>
+          <div class="building"></div>
+          <div class="building"></div>
+        </div>
+
+        <div class="moving-pin"></div>
+        <div class="route-line"></div>
+
+        <div class="vehicle">
+          <div class="cab-roof">
+            <div class="window back"></div>
+            <div class="window front"></div>
+          </div>
+
+          <div class="cab-body"></div>
+          <div class="cab-stripe"></div>
+          <div class="headlight"></div>
+          <div class="wheel wheel-one"></div>
+          <div class="wheel wheel-two"></div>
+        </div>
+      </div>
+
+      <div class="loader-footer">
+        <span id="loaderStatus">Syncing live route data</span>
+
+        <div class="loader-progress">
+          <div class="loader-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loader = document.getElementById("transportLoader");
+    const loaderMessage = document.getElementById("loaderMessage");
+    const loaderStatus = document.getElementById("loaderStatus");
+    const loaderCounter = document.getElementById("loaderCounter");
+    const pageTitle = document.getElementById("pageTitle");
+    const pageDescription = document.getElementById("pageDescription");
+
+    let loadingTimer;
+    let percentageTimer;
+
+    function updateActiveNavigation(clickedElement) {
+      if (clickedElement.classList.contains("time-slot")) {
+        document.querySelectorAll(".time-slot").forEach((item) => {
+          item.classList.remove("active");
+        });
+
+        clickedElement.classList.add("active");
+      }
+
+      if (clickedElement.classList.contains("side-link")) {
+        document.querySelectorAll(".side-link").forEach((item) => {
+          item.classList.remove("active");
+        });
+
+        clickedElement.classList.add("active");
+      }
+    }
+
+    function startPercentageCounter() {
+      let percentage = 0;
+
+      clearInterval(percentageTimer);
+
+      percentageTimer = setInterval(() => {
+        percentage += Math.floor(Math.random() * 8) + 3;
+
+        if (percentage >= 96) {
+          percentage = 96;
+          clearInterval(percentageTimer);
+        }
+
+        loaderCounter.textContent = percentage + "%";
+      }, 145);
+    }
+
+    function stopPercentageCounter() {
+      clearInterval(percentageTimer);
+      loaderCounter.textContent = "100%";
+    }
+
+    function showTransportLoader(message, targetTitle, clickedElement) {
+      clearTimeout(loadingTimer);
+
+      loaderMessage.textContent =
+        message || "Preparing transport information...";
+
+      loaderStatus.textContent = "Syncing live route data";
+      loaderCounter.textContent = "0%";
+      loader.classList.add("active");
+
+      startPercentageCounter();
+
+      loadingTimer = setTimeout(() => {
+        stopPercentageCounter();
+        loaderStatus.textContent = "Transport data ready";
+
+        setTimeout(() => {
+          loader.classList.remove("active");
+
+          if (targetTitle) {
+            pageTitle.textContent = targetTitle;
+
+            pageDescription.textContent =
+              "Demo page loaded successfully using the vehicle route transition animation.";
+          }
+
+          if (clickedElement) {
+            updateActiveNavigation(clickedElement);
+          }
+        }, 230);
+      }, 2200);
+    }
+
+    document.querySelectorAll(".navigation-trigger").forEach((element) => {
+      element.addEventListener("click", () => {
+        const message = element.dataset.message;
+        const title = element.dataset.title;
+
+        showTransportLoader(message, title, element);
+      });
+    });
+
+    /*
+      ==========================================================
+      HOW TO USE THIS IN A REAL JSP / HTML WEBSITE
+      ==========================================================
+
+      For a real page redirect, create a link like this:
+
+      <a href="trip-details.jsp"
+         class="real-page-link"
+         data-loading-message="Loading trip details...">
+         View Details
+      </a>
+
+      Then use:
+
+      document.querySelectorAll(".real-page-link").forEach((link) => {
+        link.addEventListener("click", function(event) {
+          event.preventDefault();
+
+          loaderMessage.textContent =
+            link.dataset.loadingMessage || "Loading transport data...";
+
+          loader.classList.add("active");
+
+          setTimeout(() => {
+            window.location.href = link.href;
+          }, 450);
+        });
+      });
+
+      Use 350–500ms before changing the page. Do not wait 2.2 seconds
+      in a production transport dashboard unless data is genuinely loading.
+    */
+  </script>
+</body>
+</html>
